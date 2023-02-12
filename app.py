@@ -20,14 +20,14 @@ def inference(model_inputs:dict) -> dict:
     # Parse out your arguments
     mp3BytesString = model_inputs.get('mp3BytesString', None)
     end_of_previous_chunk = model_inputs.get('end_of_previous_chunk', None)
-    if mp3BytesString == None:
+    if mp3BytesString == None or mp3BytesString == "":
         return {'message': "No input provided"}
     
     mp3Bytes = BytesIO(base64.b64decode(mp3BytesString.encode("ISO-8859-1")))
-    with open('input.mp3','wb') as file:
+    with open('input.webm','wb') as file:
         file.write(mp3Bytes.getbuffer())
     
-    audio = whisper.load_audio('input.mp3')
+    audio = whisper.load_audio('input.webm')
     audio = whisper.pad_or_trim(audio)
     # make log-Mel spectrogram and move to the same device as the model
     mel = whisper.log_mel_spectrogram(audio).to(model.device)
@@ -37,7 +37,7 @@ def inference(model_inputs:dict) -> dict:
     result = whisper.decode(model, mel, options)
     # {"text":result["text"]} TypeError: 'DecodingResult' object is not subscriptable [2022-10-09 04:38:06 +0000]
     output = result.text
-    os.remove("input.mp3")
+    os.remove("input.webm")
 
     # check that the resulting text does not contain too many repeated words
     # if yes, we decode the audio again without a prefix
